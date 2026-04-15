@@ -2,7 +2,15 @@
 
 ## Introduction
 
-The inverted pendulum system is a classic example of a dynamic system that poses a real challenge in the field of control engineering due to its inherently unstable nature. This system consists of a pendulum that has its mass above its pivot point and is mounted on a moving cart. The primary goal in controlling an inverted pendulum is to apply forces to the cart in such a way that the pendulum remains upright and stable, despite disturbances or changes in motion. This system is inherently unstable. Small disturbances or deviations from the upright position will be amplified, causing the pendulum to fall quickly if uncorrected. Successful control of this system requires a feedback mechanism that reacts continuously to the pendulum’s state to maintain balance.
+The inverted pendulum system is a classic example of a dynamic system that poses a real challenge in the field of control engineering as it covers several core challanges that appear in most control systems:
+
+1) **Inherently Unstable**: Unlike a hanging pendulum, which naturally settles into a stable downward position, the upright pendulum does the opposite. Any tiny disturbance in angle can grow quickly if no corrective control is applied, so active feedback is required at all times.
+
+2) **Non-linear Behavior**: Its governing equations include trigonometric terms and state couplings, which makes the full dynamics non-linear. This is important because many practical systems are also non-linear.
+
+3) **Multi-variable Coupling**: The cart position and pendulum angle are tightly coupled. Moving the cart affects the pendulum, and pendulum motion reacts back onto the cart.
+
+The system consists of a pendulum that has its mass above its pivot point and is mounted on a moving cart. The primary goal in controlling an inverted pendulum is to apply forces to the cart in such a way that the pendulum remains upright and stable, despite disturbances or changes in motion. This system is inherently unstable. Small disturbances or deviations from the upright position will be amplified, causing the pendulum to fall quickly if uncorrected. Successful control of this system requires a feedback mechanism that reacts continuously to the pendulum’s state to maintain balance.
 
 In this task, you will develop and implement control strategies to stabilize the inverted pendulum.
 
@@ -11,8 +19,6 @@ In this task, you will develop and implement control strategies to stabilize the
 ---
 
 ## Feedback Control and PID
-
-Many software problems involve interaction with dynamic external processes. Feedback control is a powerful paradigm for managing those interactions. In feedback control, sensors measure the current state (e.g., position and angle of the pendulum), which is compared to the desired state. The difference (error) is fed into a controller, which calculates a corrective action to drive the system toward the desired state.
 
 Many software problems involve interaction with dynamic external processes (e.g., network traffic). Feedback control is a powerful paradigm for managing those interactions. In feed- back control of dynamical systems, we use sensors to measure the current state of the system (such as the position and angle of the pendulum). This measurement is compared to the desired state (e.g., the pendulum balanced upright). The difference, known as the error, is fed into a controller. The controller calculates a corrective action designed to drive the system towards the desired state. The figure below shows a controller in a feedback loop.
 
@@ -104,14 +110,14 @@ Start with a low proportional gain ($K_p$) and gradually increase it until the s
 
 To make the analysis of the inverted pendulum more tractable, we start with simplifying assumptions:
 
-1. rictionless Motion: The cart moves without frictional resistance.
-2. Rigid Pendulum: The pendulum rod does not bend or flex.
-3. Point Masses: The cart and pendulum mass can be concentrated at specific points.
-4. 2D Motion: The system moves only in a single vertical plane.
+1. **rictionless Motion**: The cart moves without frictional resistance and motion is limited to the X-Axis.
+2. **Rigid Pendulum**: The pendulum rod does not bend or flex.
+3. **Point Masses**: The cart and pendulum mass can be concentrated at specific points.
+4. **2D Motion**: The system moves only in a single vertical plane.
 
 ### Equations of Motion
 
-The following two equations represent the dynamics of inverted pendulum system:
+The following equasions derived earlier represent the dynamics of inverted pendulum system earlier:
 
 #### Linear acceleration:
 
