@@ -10,9 +10,11 @@ Welcome to Embedded Systems Lab!
    :maxdepth: 2
    :caption: Contents:
 
+   pendulum_modeling.md
    task_sheet.md
    README.md
    ES_Guidelines_for_Lab_report.md
+   introduction_cpp.md
    cpp_api
 
 
