@@ -1,6 +1,6 @@
 
 # Always start with these two
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.14)
 project(Inverted_Pendulum)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
