@@ -4,8 +4,8 @@
  * @brief Implementation file for the CommServer class.
  *
  * This file contains the implementation of the methods declared in the server.h
- * header file. It provides the functionality for handling incoming HTTP and
- * WebSocket requests and managing communication with the inverted pendulum
+ * header file. It provides the functionality for handling incoming WebSocket
+ * requests and managing communication with the inverted pendulum
  * simulation.
  *
  * @author Utkarsh Raj
@@ -28,19 +28,6 @@ void set_cors_headers(http::response<http::string_body> &res) {
           "GET, POST, OPTIONS");
   res.set(boost::beast::http::field::access_control_allow_headers,
           "Content-Type");
-}
-
-http::response<http::string_body>
-make_json_response(const json &payload, unsigned version, bool keep_alive,
-                   http::status status = http::status::ok) {
-  http::response<http::string_body> res{status, version};
-  res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-  res.set(http::field::content_type, "application/json");
-  set_cors_headers(res);
-  res.keep_alive(keep_alive);
-  res.body() = payload.dump();
-  res.prepare_payload();
-  return res;
 }
 
 http::response<http::string_body>
@@ -138,7 +125,7 @@ private:
       const json command = json::parse(beast::buffers_to_string(buffer.data()));
       response = server.apply_websocket_command(command, broadcast_event);
 
-      if (command.contains("id")) {
+      if (!response.is_null() && command.contains("id")) {
         response["id"] = command["id"];
       }
     } catch (const std::exception &error) {
@@ -146,7 +133,9 @@ private:
       response["message"] = error.what();
     }
 
-    send(response.dump());
+    if (!response.is_null()) {
+      send(response.dump());
+    }
 
     if (!broadcast_event.empty()) {
       server.broadcast_snapshot(broadcast_event);
@@ -230,7 +219,9 @@ private:
       return;
     }
 
-    write_response(server.handle_request(req));
+    write_response(make_text_response("WebSocket endpoint required",
+                                      req.version(), req.keep_alive(),
+                                      http::status::bad_request));
   }
 
   void write_response(http::response<http::string_body> res) {
@@ -345,40 +336,8 @@ json CommServer::make_snapshot_payload(const std::string &event) {
 
 json CommServer::apply_websocket_command(const json &command,
                                          std::string &broadcast_event) {
-  const std::string type = command.value("type", "getSnapshot");
+  const std::string type = command.value("type", "");
   broadcast_event.clear();
-
-  if (type == "getSnapshot") {
-    return make_snapshot_payload();
-  }
-
-  if (type == "getStatus") {
-    json response;
-    response["type"] = "status";
-    response["status"] = make_status_payload();
-    return response;
-  }
-
-  if (type == "getSample") {
-    json response;
-    response["type"] = "sample";
-    response["sample"] = make_sample_payload();
-    return response;
-  }
-
-  if (type == "getPid") {
-    json response;
-    response["type"] = "pid";
-    response["pid"] = make_pid_payload();
-    return response;
-  }
-
-  if (type == "getParams") {
-    json response;
-    response["type"] = "params";
-    response["params"] = make_params_payload();
-    return response;
-  }
 
   if (type == "setPid") {
     const json pid = command.at("pid");
@@ -390,7 +349,7 @@ json CommServer::apply_websocket_command(const json &command,
                                       pid.value("kd", current.kd));
     }
     broadcast_event = "pid";
-    return make_snapshot_payload(broadcast_event);
+    return nullptr;
   }
 
   if (type == "setParams") {
@@ -402,7 +361,7 @@ json CommServer::apply_websocket_command(const json &command,
                         params.value("jitter", sim.m_params.jitter));
     }
     broadcast_event = "params";
-    return make_snapshot_payload(broadcast_event);
+    return nullptr;
   }
 
   if (type == "reset") {
@@ -411,7 +370,7 @@ json CommServer::apply_websocket_command(const json &command,
       sim.reset_simulator();
     }
     broadcast_event = "reset";
-    return make_snapshot_payload(broadcast_event);
+    return nullptr;
   }
 
   if (type == "toggleStartStop") {
@@ -426,7 +385,7 @@ json CommServer::apply_websocket_command(const json &command,
       sim.g_pause_cv.notify_one();
     }
     broadcast_event = "startstop";
-    return make_snapshot_payload(broadcast_event);
+    return nullptr;
   }
 
   throw std::invalid_argument("Unknown WebSocket command type: " + type);
@@ -480,76 +439,4 @@ void CommServer::broadcast_snapshot(const std::string &event) {
   for (const auto &session : sessions) {
     session->send(message);
   }
-}
-
-http::response<http::string_body>
-CommServer::handle_request(const http::request<http::string_body> &req) {
-
-  if (req.method() == http::verb::get) {
-    if (req.target() == "/sim") {
-      return make_json_response(make_sample_payload(), req.version(),
-                                req.keep_alive());
-    }
-    if (req.target() == "/status") {
-      return make_json_response(make_status_payload(), req.version(),
-                                req.keep_alive());
-    }
-    if (req.target() == "/pid") {
-      return make_json_response(make_pid_payload(), req.version(),
-                                req.keep_alive());
-    }
-    if (req.target() == "/params") {
-      return make_json_response(make_params_payload(), req.version(),
-                                req.keep_alive());
-    }
-  }
-
-  if (req.method() == http::verb::post) {
-    std::string broadcast_event;
-
-    if (req.target() == "/pid") {
-      json pid = json::parse(req.body());
-      std::lock_guard<std::mutex> lock(sim.g_start_mutex);
-      sim.m_controller->update_params(pid["kp"], pid["ki"], pid["kd"]);
-      broadcast_event = "pid";
-    } else if (req.target() == "/reset") {
-      std::lock_guard<std::mutex> lock(sim.g_start_mutex);
-      sim.reset_simulator();
-      broadcast_event = "reset";
-    } else if (req.target() == "/startstop") {
-      if (!sim.g_start.load()) {
-        std::lock_guard<std::mutex> start_lock(sim.g_start_mutex);
-        sim.g_start = true;
-        sim.g_start_cv.notify_one();
-      }
-      std::lock_guard<std::mutex> lock(sim.g_pause_mutex);
-      sim.g_pause = !sim.g_pause;
-      sim.g_pause_cv.notify_one();
-      broadcast_event = "startstop";
-    } else if (req.target() == "/params") {
-      json params = json::parse(req.body());
-      std::lock_guard<std::mutex> lock(sim.g_start_mutex);
-      sim.update_params(params["ref"], params["delay"], params["jitter"]);
-      broadcast_event = "params";
-    } else {
-      return make_text_response("Invalid request-target", req.version(),
-                                req.keep_alive(), http::status::bad_request);
-    }
-
-    broadcast_snapshot(broadcast_event);
-
-    return make_text_response("Accepted", req.version(), req.keep_alive());
-  }
-
-  if (req.method() == http::verb::options) {
-    http::response<http::string_body> res{http::status::ok, req.version()};
-    res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-    set_cors_headers(res);
-    res.keep_alive(req.keep_alive());
-    res.prepare_payload();
-    return res;
-  }
-
-  return make_text_response("Invalid request-target", req.version(),
-                            req.keep_alive(), http::status::bad_request);
 }

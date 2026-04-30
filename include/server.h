@@ -5,8 +5,8 @@
  *
  * This file declares the CommServer class, which implements a communication
  * server for interacting with the inverted pendulum simulation. It utilizes
- * Boost.Asio for asynchronous I/O operations and Boost.Beast for handling HTTP
- * requests, responses, and WebSocket sessions. The CommServer class facilitates
+ * Boost.Asio for asynchronous I/O operations and Boost.Beast for handling
+ * WebSocket sessions. The CommServer class facilitates
  * communication with the simulation, allowing control and monitoring of
  * simulation parameters over network.
  *
@@ -44,9 +44,9 @@ class HttpSession;
 /**
  * @brief Class for managing communication frontend and simulation backend.
  *
- * The CommServer class implements a communication server that handles HTTP and
+ * The CommServer class implements a communication server that handles
  * WebSocket requests to control and monitor the inverted pendulum simulation.
- * It listens for incoming connections, processes requests, and sends
+ * It listens for incoming connections, processes commands, and sends
  * corresponding responses.
  */
 class CommServer {
@@ -99,20 +99,9 @@ private:
    * @brief Runs the communication server loop.
    *
    * This method continuously listens for incoming connections, accepts
-   * them, and handles HTTP/WebSocket requests.
+   * them, and handles WebSocket requests.
    */
   void run_server();
-  /**
-   * @brief Handles an incoming HTTP request.
-   *
-   * This method processes an already-read HTTP request and sends an appropriate
-   * HTTP response.
-   *
-   * @param socket The socket for communicating with the client.
-   * @param req The HTTP request to process.
-   */
-  http::response<http::string_body>
-  handle_request(const http::request<http::string_body> &req);
 
   void register_websocket(const std::shared_ptr<WebSocketSession> &session);
   void unregister_websocket(const WebSocketSession *session);

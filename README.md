@@ -13,8 +13,8 @@ A C++ simulator that implements PID control for an inverted pendulum system.
 It provides a simulation environment where the user can test and evaluate
 different PID controller parameters to stabilize the inverted pendulum.
 
-The simulator also includes HTTP and WebSocket server components that allow
-external control and monitoring of the simulation parameters via frontend requests.
+The simulator also includes a WebSocket server that accepts frontend control
+events and broadcasts authoritative simulation snapshots to connected clients.
 This enables users to interact with the simulation
 in real-time through a web-based interface.
 
@@ -23,12 +23,12 @@ in real-time through a web-based interface.
 - Simulates PID control of an inverted pendulum system.
 - Dynamically adjustable PID controller parameters (kp, ki, kd).
 - Real-time visualization and monitoring of simulation.
-- HTTP and WebSocket server for remote control and monitoring via web interface.
+- WebSocket server for remote control and monitoring via web interface.
 
 ## Dependencies
 
 - CMake - For building the project .
-- Boost - For HTTP server, relase version can be downloaded from [boost website](https://www.boost.org/users/download/)
+- Boost - For the WebSocket server, release version can be downloaded from [boost website](https://www.boost.org/users/download/)
 - nlohmann/json - json.hpp file can be downloaded from [github](https://github.com/nlohmann/json/releases/tag/v3.11.3)
 
 ## Building the Project
