@@ -11,12 +11,23 @@
 
 #include "simulator.h"
 #include "controller.h"
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <experimental/random>
 #include <iostream>
 #include <mutex>
 #include <thread>
+
+int calculate_delay_index(int current_index, int buffer_size, double delta_t,
+                          int delay_us, int jitter_us) {
+  ///@todo Implement delay and jitter by changing delay index based on
+  /// delay_us and jitter_us.
+  ///@todo Handle case when delay index is negative, wrap around to end of
+  /// circular buffer.
+  ///@todo Make sure delay index is within bounds of buffer size.
+  return current_index;
+}
 
 void Simulator::run_simulator() {
 
@@ -35,13 +46,11 @@ void Simulator::run_simulator() {
       // parameters cannot be updated in the middle of time step
       std::lock_guard<std::mutex> lock(g_start_mutex);
 
-      ///@todo Implement delay and jitter by changing delay index based on
-      /// SimParams.delay and SimParams.jitter
-      delay_index = i - 0; // delay of zero time step
-      ///@todo Handle case when delay index is negative, wrap around to end of
-      /// circular buffer
-      ///@todo Make sure delay index is within bounds of buffer size
-
+      const int jitter_sample =
+          m_params.jitter > 0 ? std::experimental::randint(0, m_params.jitter)
+                              : 0;
+      delay_index = calculate_delay_index(
+          i, buffer_size, m_params.delta_t, m_params.delay, jitter_sample);
       error = m_params.ref_angle - theta.at(delay_index);
       F = m_controller->output(-error);
 
@@ -98,5 +107,7 @@ void Simulator::reset_simulator() {
   m_controller->reset();
 }
 void Simulator::update_params(double ref = 0, int delay = 0, int jitter = 0) {
-  ///@todo Implement update_params function to update simulation parameters
+  m_params.ref_angle = ref;
+  m_params.delay = delay;
+  m_params.jitter = jitter;
 }

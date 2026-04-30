@@ -12,6 +12,12 @@
 
 #pragma once
 
+struct ControllerParams {
+  double kp;
+  double ki;
+  double kd;
+};
+
 /**
  * @brief Interface for controllers used in the inverted pendulum simulation.
  *
@@ -39,8 +45,8 @@ public:
    * such as proportional, integral, and derivative gains.
    *
    * @param kp The proportional gain.
-   * @param kd The derivative gain.
    * @param ki The integral gain.
+   * @param kd The derivative gain.
    */
   virtual void update_params(double kp, double ki, double kd) = 0;
   /**
@@ -62,6 +68,8 @@ public:
    * @param min The minimum allowed control signal.
    */
   virtual void setClamp(double max, double min) = 0;
+
+  virtual ControllerParams get_params() const = 0;
 };
 
 /**
@@ -78,12 +86,12 @@ public:
   /**
    * @brief Default constructor.
    *
-   * Initializes the PID controller with default proportional, derivative,
-   * and integral gains.
+   * Initializes the PID controller with default proportional, integral,
+   * and derivative gains.
    */
   double kp = 0.0;
-  double kd = 0.0;
   double ki = 0.0;
+  double kd = 0.0;
   ///@todo Intialize paramaters for discrete PID controller
 
   PIDController();
@@ -107,8 +115,8 @@ public:
    * (proportional, derivative, and integral gains).
    *
    * @param kp The new proportional gain.
-   * @param kd The new derivative gain.
    * @param ki The new integral gain.
+   * @param kd The new derivative gain.
    */
   void update_params(double kp, double ki, double kd);
   /**
@@ -128,4 +136,6 @@ public:
    * @param min The minimum allowed control signal.
    */
   void setClamp(double max, double min);
+
+  ControllerParams get_params() const;
 };

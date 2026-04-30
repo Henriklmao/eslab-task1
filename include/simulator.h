@@ -43,6 +43,9 @@ struct Cart {
   double I = m * len * len; ///< Moment of inertia of pendulum
 };
 
+int calculate_delay_index(int current_index, int buffer_size, double delta_t,
+                          int delay_us, int jitter_us);
+
 /**
  * @brief Simulator class for simulating the inverted pendulum.
  */
