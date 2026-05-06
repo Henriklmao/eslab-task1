@@ -13,7 +13,7 @@
 #include "controller.h"
 #include <iostream>
 
-PIDController::PIDController() { update_params(kp, kd, ki); }
+PIDController::PIDController() { update_params(kp, ki, kd); }
 
 void PIDController::setClamp(double max, double min) {
   ///@todo Implement setClamp for setting the output limits
@@ -25,9 +25,15 @@ double PIDController::output(double error) {
 }
 
 void PIDController::update_params(double kp_, double ki_, double kd_) {
+  kp = kp_;
+  ki = ki_;
+  kd = kd_;
   ///@todo Implement the update_params function for PID controller
 }
+
 void PIDController::reset() {
   ///@todo Implement the reset function for PID controller called by simulator
   /// when simulation is reset
 }
+
+ControllerParams PIDController::get_params() const { return {kp, ki, kd}; }

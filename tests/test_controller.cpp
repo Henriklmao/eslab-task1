@@ -12,7 +12,7 @@ TEST(ControllerTest, BasicTest) {
 TEST(ControllerTest, IntegralTest) {
   // Integral term should accumulate error
   PIDController controller;
-  controller.update_params(0, 0, 1.0);
+  controller.update_params(0, 1.0, 0);
   double output = controller.output(10.0);
   output = controller.output(10.0);
   output = controller.output(0.0);
@@ -38,19 +38,19 @@ TEST(ControllerTest, ProportionalTest2) {
 TEST(ControllerTest, DerivativeTest) {
   // Derivative term should respond to change in error
   PIDController controller;
-  controller.update_params(0, 1, 0);
+  controller.update_params(0, 0, 1);
   double output = controller.output(10.0);
   output = controller.output(10.0);
   output = controller.output(0.0);
   EXPECT_NE(output, 0);
 }
 
-// TEST(ControllerTest, OutputTest) {
-//   PIDController controller;
-//   controller.update_params(1.0, 2.0, 3.0);
-//   double output = controller.output(10.0);
-//   EXPECT_NEAR(output, 1000.0, 1e-6);
-// }
+/*TEST(ControllerTest, OutputTest) {
+  PIDController controller;
+  controller.update_params(1.0, 3.0, 2.0);
+  double output = controller.output(10.0);
+  EXPECT_NEAR(output, 1000.0, 1e-6);
+}*/
 
 TEST(ControllerTest, ResetTest) {
   PIDController controller;

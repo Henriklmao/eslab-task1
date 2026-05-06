@@ -81,7 +81,6 @@ class "CommServer" as C_0011200438516648707549
 class C_0011200438516648707549 {
 +CommServer(Simulator & sim) : void
 ..
--handle_request(tcp::socket & socket) : void
 -run_server() : void
 +start_server() : void
 __
